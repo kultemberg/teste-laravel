@@ -84,6 +84,8 @@ class AplicarCreditoPendente implements ShouldQueue
 
             $cobranca->save();
 
+            \Illuminate\Support\Facades\Cache::forget('dashboard_financeiro');
+
             TransacaoCredito::create([
                 'cliente_id' => $cliente->id,
                 'usuario_id' => null,

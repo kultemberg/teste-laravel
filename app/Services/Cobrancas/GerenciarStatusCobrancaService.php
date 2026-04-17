@@ -34,6 +34,8 @@ class GerenciarStatusCobrancaService
             $cobranca->status = $this->determinarStatusFinal($cobranca, $novoStatus);
             $cobranca->save();
 
+            \Illuminate\Support\Facades\Cache::forget('dashboard_financeiro');
+
             return $cobranca->fresh();
         });
     }
