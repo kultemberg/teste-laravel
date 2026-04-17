@@ -29,3 +29,6 @@ Os status de cobrança foram armazenados como string no banco e representados po
 
 ## 10. Exceções de domínio
 Foram criadas exceções específicas para representar regras de negócio inválidas, como transições de status de cobrança proibidas. Isso melhora a clareza do código e facilita o tratamento de erros.
+
+## 11. Service para gerenciamento de regras de negócio de cobrança
+A lógica de ciclo de vida das cobranças foi centralizada em um service de domínio, responsável por validar transições, aplicar crédito automaticamente, exigir motivo em cancelamentos e garantir atomicidade com transactions.
