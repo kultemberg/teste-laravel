@@ -1,0 +1,14 @@
+[90m= [39m[34;4mIlluminate\Database\Eloquent\Collection[39;24m {#7446
+    [34mall[39m: [
+      [34;4mApp\Models\Cliente[39;24m {#7447
+        [34mid[39m: [35m1[39m,
+        [34mnome[39m: [32m"[39m[32mCliente Teste[39m[32m"[39m,
+        [34mdocumento[39m: [32m"[39m[32m12345678900[39m[32m"[39m,
+        [34mtelefone[39m: [32m"[39m[32m84999999999[39m[32m"[39m,
+        [34memail[39m: [32m"[39m[32mcliente@teste.com[39m[32m"[39m,
+        [34msaldo_credito[39m: [32m"[39m[32m0.00[39m[32m"[39m,
+        [34mcreated_at[39m: [32m"[39m[32m2026-04-17 05:07:22[39m[32m"[39m,
+        [34mupdated_at[39m: [32m"[39m[32m2026-04-17 05:07:22[39m[32m"[39m,
+      },
+    ],
+  }
