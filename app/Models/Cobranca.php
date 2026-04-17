@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatusCobranca;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,6 +21,15 @@ class Cobranca extends Model
         'valor_credito_aplicado',
         'status',
         'motivo_cancelamento',
+    ];
+
+    protected $casts = [
+        'data_referencia' => 'date',
+        'data_vencimento' => 'date',
+        'valor' => 'decimal:2',
+        'valor_pago' => 'decimal:2',
+        'valor_credito_aplicado' => 'decimal:2',
+        'status' => StatusCobranca::class ,
     ];
 
     public function cliente(): BelongsTo
