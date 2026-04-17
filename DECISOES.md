@@ -26,3 +26,6 @@ Foi utilizada autenticação via Laravel Sanctum em vez de JWT. A escolha foi fe
 
 ## 9. Representação de status  
 Os status de cobrança foram armazenados como string no banco e representados por enum no PHP, para manter a persistência simples e concentrar a lógica de domínio na aplicação.
+
+## 10. Exceções de domínio
+Foram criadas exceções específicas para representar regras de negócio inválidas, como transições de status de cobrança proibidas. Isso melhora a clareza do código e facilita o tratamento de erros.
