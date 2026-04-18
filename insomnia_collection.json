@@ -1,0 +1,358 @@
+{
+    "_type": "export",
+    "__export_format": 4,
+    "__export_date": "2026-04-18T01:04:00.000Z",
+    "__export_source": "insomnia.desktop.app:v2023.1.0",
+    "resources": [
+        {
+            "_id": "wrk_teste_laravel",
+            "_type": "workspace",
+            "name": "Teste Laravel — API Financeira",
+            "description": "Coleção completa para apresentação do teste técnico",
+            "scope": "collection"
+        },
+        {
+            "_id": "env_base",
+            "_type": "environment",
+            "parentId": "wrk_teste_laravel",
+            "name": "Base Environment",
+            "data": {
+                "base_url": "http://127.0.0.1:8000/api/v1",
+                "token": ""
+            }
+        },
+        {
+            "_id": "grp_auth",
+            "_type": "request_group",
+            "parentId": "wrk_teste_laravel",
+            "name": "🔐 Auth"
+        },
+        {
+            "_id": "req_login",
+            "_type": "request",
+            "parentId": "grp_auth",
+            "name": "Login",
+            "method": "POST",
+            "url": "{{ base_url }}/login",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n  \"email\": \"financeiro.seeder@teste.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "description": "Retorna o token de acesso. Copie o token e cole na variável de ambiente 'token'."
+        },
+        {
+            "_id": "req_me",
+            "_type": "request",
+            "parentId": "grp_auth",
+            "name": "Me (usuário autenticado)",
+            "method": "GET",
+            "url": "{{ base_url }}/me",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Retorna os dados do usuário autenticado."
+        },
+        {
+            "_id": "req_logout",
+            "_type": "request",
+            "parentId": "grp_auth",
+            "name": "Logout",
+            "method": "POST",
+            "url": "{{ base_url }}/logout",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ]
+        },
+        {
+            "_id": "grp_dashboard",
+            "_type": "request_group",
+            "parentId": "wrk_teste_laravel",
+            "name": "📊 Dashboard"
+        },
+        {
+            "_id": "req_dashboard",
+            "_type": "request",
+            "parentId": "grp_dashboard",
+            "name": "Dashboard Financeiro",
+            "method": "GET",
+            "url": "{{ base_url }}/dashboard",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Retorna em uma única query: faturamento do mês atual vs anterior (com variação %), total em aberto, total inadimplente, top 5 clientes e distribuição de OS por status. Cache de 5 minutos, invalidado automaticamente quando uma cobrança muda."
+        },
+        {
+            "_id": "grp_cobrancas",
+            "_type": "request_group",
+            "parentId": "wrk_teste_laravel",
+            "name": "💰 Cobranças"
+        },
+        {
+            "_id": "req_cobrancas_todas",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Listar todas",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Lista todas as cobranças paginadas (padrão: 15 por página)."
+        },
+        {
+            "_id": "req_cobrancas_filtro_status",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Filtro — múltiplos status",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?status[]=pago_parcial&status[]=inadimplente",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Filtra cobranças por múltiplos status simultâneos. Status válidos: aguardando_pagamento, pago_parcial, pago, inadimplente, cancelado."
+        },
+        {
+            "_id": "req_cobrancas_busca",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Filtro — busca por cliente",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?busca=Alpha",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Busca por nome ou documento do cliente. Tente também 'Beta' ou '111'."
+        },
+        {
+            "_id": "req_cobrancas_datas",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Filtro — intervalo de datas",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?data_referencia_inicial=2026-04-01&data_referencia_final=2026-04-30",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Filtra cobranças por intervalo de data de referência."
+        },
+        {
+            "_id": "req_cobrancas_ordenacao",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Ordenação — por valor decrescente",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?ordenar_por=valor&direcao=desc",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Campos permitidos (whitelist): id, data_referencia, data_vencimento, valor, status, created_at. Campos fora da whitelist retornam 422."
+        },
+        {
+            "_id": "req_cobrancas_paginacao",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Paginação — 1 item por página",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?por_pagina=1&page=2",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Demonstra a paginação por offset. Resposta inclui total, current_page, last_page, next_page_url e prev_page_url."
+        },
+        {
+            "_id": "req_cobrancas_combinado",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Filtro completo (todos combinados)",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?status[]=inadimplente&busca=Beta&ordenar_por=data_vencimento&direcao=asc&por_pagina=10",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Demonstra todos os filtros funcionando juntos: status, busca, ordenação e paginação."
+        },
+        {
+            "_id": "req_cobrancas_validacao_status",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Validação — status inválido (422)",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?status[]=status_invalido",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Deve retornar 422 com mensagem 'Cada status deve ser um dos valores: ...'."
+        },
+        {
+            "_id": "req_cobrancas_validacao_campo",
+            "_type": "request",
+            "parentId": "grp_cobrancas",
+            "name": "Validação — campo de ordenação inválido (422)",
+            "method": "GET",
+            "url": "{{ base_url }}/cobrancas?ordenar_por=senha",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Deve retornar 422 com mensagem 'Campo de ordenação inválido.' Protege contra SQL injection via ordenação."
+        },
+        {
+            "_id": "grp_credito",
+            "_type": "request_group",
+            "parentId": "wrk_teste_laravel",
+            "name": "💳 Aplicar Crédito"
+        },
+        {
+            "_id": "req_credito_ok",
+            "_type": "request",
+            "parentId": "grp_credito",
+            "name": "Aplicar crédito — Empresa Alpha (id:1)",
+            "method": "POST",
+            "url": "{{ base_url }}/clientes/1/aplicar-credito",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n  \"valor\": 500,\n  \"descricao\": \"Crédito de demonstração\"\n}"
+            },
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Aplica R$ 500 de crédito. Automaticamente tenta quitar cobranças em aberto via job assíncrono (AplicarCreditoPendente). O cache do dashboard é invalidado."
+        },
+        {
+            "_id": "req_credito_ok_beta",
+            "_type": "request",
+            "parentId": "grp_credito",
+            "name": "Aplicar crédito — Empresa Beta (id:2)",
+            "method": "POST",
+            "url": "{{ base_url }}/clientes/2/aplicar-credito",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n  \"valor\": 1600,\n  \"descricao\": \"Quitação total da dívida\"\n}"
+            },
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Aplica R$ 1.600 — valor exato da cobrança inadimplente da Empresa Beta. Após o job processar, a cobrança deve ficar com status 'pago'."
+        },
+        {
+            "_id": "req_credito_zero",
+            "_type": "request",
+            "parentId": "grp_credito",
+            "name": "Validação — valor zero (422)",
+            "method": "POST",
+            "url": "{{ base_url }}/clientes/1/aplicar-credito",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n  \"valor\": 0\n}"
+            },
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Deve retornar 422 com mensagem 'O valor do crédito deve ser maior que zero.'"
+        },
+        {
+            "_id": "req_credito_negativo",
+            "_type": "request",
+            "parentId": "grp_credito",
+            "name": "Validação — valor negativo (422)",
+            "method": "POST",
+            "url": "{{ base_url }}/clientes/1/aplicar-credito",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n  \"valor\": -100\n}"
+            },
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                },
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{ token }}"
+                }
+            ],
+            "description": "Deve retornar 422 com mensagem 'O valor do crédito deve ser maior que zero.'"
+        },
+        {
+            "_id": "req_credito_sem_token",
+            "_type": "request",
+            "parentId": "grp_credito",
+            "name": "Sem autenticação (401)",
+            "method": "POST",
+            "url": "{{ base_url }}/clientes/1/aplicar-credito",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n  \"valor\": 100\n}"
+            },
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "description": "Sem token Authorization → deve retornar 401 Unauthenticated."
+        }
+    ]
+}

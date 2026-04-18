@@ -51,12 +51,40 @@ Isso permite:
 
 ---
 
-##  Idempotência do Job
+## ⚡ Idempotência do Job `AplicarCreditoPendente`
 
-O job `AplicarCreditoPendente` garante:
-- não reaplicar crédito já utilizado
-- uso de `lockForUpdate` para evitar concorrência
-- verificação de saldo e valor em aberto antes de aplicar
+O teste exige que o job seja idempotente — se disparado duas vezes ao mesmo tempo para o mesmo cliente, o segundo não pode causar dupla aplicação de crédito.
+
+### Mecanismo adotado: `lockForUpdate` + verificação de transação existente
+
+O job utiliza dois níveis de proteção combinados:
+
+**Nível 1 — `lockForUpdate` (bloqueio pessimista)**
+
+```php
+$cliente = Cliente::query()->lockForUpdate()->find($clienteId);
+$cobranca = Cobranca::query()->lockForUpdate()->first();
+```
+
+Ao iniciar a transação, client e cobrança são bloqueados no banco de dados. Se dois workers processarem o mesmo job simultaneamente, o segundo ficará aguardando o primeiro terminar. Quando o primeiro terminar e liberar o lock, o segundo verá o estado atualizado.
+
+**Nível 2 — verificação de transação existente**
+
+```php
+$jaExisteTransacao = TransacaoCredito::query()
+    ->where('cobranca_id', $cobranca->id)
+    ->where('tipo', 'credito_aplicado_cobranca')
+    ->where('valor', $valorAplicado)
+    ->exists();
+
+if ($jaExisteTransacao) { return; }
+```
+
+Mesmo que os dois jobs sejam executados sequencialmente (não em paralelo), o segundo verificará que já existe uma `TransacaoCredito` registrada para aquela cobrança com aquele valor e encerrará silenciosamente.
+
+**Por que não usar `uniqueUntilProcessing` do Laravel?**
+
+O `ShouldBeUnique` previne que o mesmo job entre na fila duas vezes, mas não cobre o caso de dois jobs já na fila sendo processados ao mesmo tempo por workers diferentes. A combinação `lockForUpdate + verificação de transação` é mais robusta e cobre todos os cenários.
 
 ---
 
