@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Enums\StatusCobranca;
+use App\Observers\CobrancaObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy(CobrancaObserver::class)]
 class Cobranca extends Model
 {
     protected $table = 'cobrancas';

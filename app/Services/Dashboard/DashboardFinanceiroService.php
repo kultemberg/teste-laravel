@@ -10,37 +10,49 @@ class DashboardFinanceiroService
     {
         $inicioMesAtual = now()->startOfMonth()->toDateString();
         $fimMesAtual = now()->endOfMonth()->toDateString();
-
         $inicioMesAnterior = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
         $fimMesAnterior = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
 
-        $faturadoMesAtual = (float)DB::table('cobrancas')
-            ->whereBetween('data_referencia', [$inicioMesAtual, $fimMesAtual])
-            ->whereIn('status', ['pago', 'pago_parcial'])
-            ->sum(DB::raw('valor_pago + valor_credito_aplicado'));
+        // ─── Query 1 (única): todos os agregados financeiros em um único SELECT ─
+        // Usa CASE WHEN para calcular faturamento dos dois meses + aberto +
+        // inadimplente em uma passagem só pela tabela cobrancas — zero N+1.
+        $totais = DB::selectOne("
+            SELECT
+                COALESCE(SUM(CASE
+                    WHEN status IN ('pago', 'pago_parcial')
+                     AND data_referencia BETWEEN :inicio_atual AND :fim_atual
+                    THEN valor_pago + valor_credito_aplicado
+                    ELSE 0
+                END), 0) AS faturado_mes_atual,
 
-        $faturadoMesAnterior = (float)DB::table('cobrancas')
-            ->whereBetween('data_referencia', [$inicioMesAnterior, $fimMesAnterior])
-            ->whereIn('status', ['pago', 'pago_parcial'])
-            ->sum(DB::raw('valor_pago + valor_credito_aplicado'));
+                COALESCE(SUM(CASE
+                    WHEN status IN ('pago', 'pago_parcial')
+                     AND data_referencia BETWEEN :inicio_anterior AND :fim_anterior
+                    THEN valor_pago + valor_credito_aplicado
+                    ELSE 0
+                END), 0) AS faturado_mes_anterior,
 
-        $variacaoPercentual = 0.0;
+                COALESCE(SUM(CASE
+                    WHEN status IN ('aguardando_pagamento', 'pago_parcial')
+                    THEN valor - valor_pago - valor_credito_aplicado
+                    ELSE 0
+                END), 0) AS total_em_aberto,
 
-        if ($faturadoMesAnterior > 0) {
-            $variacaoPercentual = (($faturadoMesAtual - $faturadoMesAnterior) / $faturadoMesAnterior) * 100;
-        }
-        elseif ($faturadoMesAtual > 0) {
-            $variacaoPercentual = 100.0;
-        }
+                COALESCE(SUM(CASE
+                    WHEN status = 'inadimplente'
+                    THEN valor - valor_pago - valor_credito_aplicado
+                    ELSE 0
+                END), 0) AS total_inadimplente
 
-        $totalEmAberto = (float)DB::table('cobrancas')
-            ->whereIn('status', ['aguardando_pagamento', 'pago_parcial'])
-            ->sum(DB::raw('valor - valor_pago - valor_credito_aplicado'));
+            FROM cobrancas
+        ", [
+            'inicio_atual' => $inicioMesAtual,
+            'fim_atual' => $fimMesAtual,
+            'inicio_anterior' => $inicioMesAnterior,
+            'fim_anterior' => $fimMesAnterior,
+        ]);
 
-        $totalInadimplente = (float)DB::table('cobrancas')
-            ->where('status', 'inadimplente')
-            ->sum(DB::raw('valor - valor_pago - valor_credito_aplicado'));
-
+        // ─── Query 2: top 5 clientes por valor de contrato ativo ─────────────
         $topClientes = DB::table('clientes')
             ->join('contratos', 'contratos.cliente_id', '=', 'clientes.id')
             ->join('itens_contrato', 'itens_contrato.contrato_id', '=', 'contratos.id')
@@ -56,11 +68,22 @@ class DashboardFinanceiroService
             ->limit(5)
             ->get();
 
+        // ─── Query 3: distribuição de ordens de serviço por status ───────────
         $distribuicaoOrdensServico = DB::table('ordens_servico')
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->orderBy('status')
             ->get();
+
+        // ─── Variação percentual (calculada em PHP, sem query extra) ──────────
+        $faturadoMesAtual = (float)$totais->faturado_mes_atual;
+        $faturadoMesAnterior = (float)$totais->faturado_mes_anterior;
+
+        $variacaoPercentual = match (true) {
+                $faturadoMesAnterior > 0 => (($faturadoMesAtual - $faturadoMesAnterior) / $faturadoMesAnterior) * 100,
+                $faturadoMesAtual > 0 => 100.0,
+                default => 0.0,
+            };
 
         return [
             'faturamento' => [
@@ -69,8 +92,8 @@ class DashboardFinanceiroService
                 'variacao_percentual' => round($variacaoPercentual, 2),
             ],
             'totais' => [
-                'em_aberto' => round($totalEmAberto, 2),
-                'inadimplente' => round($totalInadimplente, 2),
+                'em_aberto' => round((float)$totais->total_em_aberto, 2),
+                'inadimplente' => round((float)$totais->total_inadimplente, 2),
             ],
             'top_clientes' => $topClientes,
             'distribuicao_ordens_servico' => $distribuicaoOrdensServico,
