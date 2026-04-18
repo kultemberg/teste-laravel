@@ -32,3 +32,6 @@ Foram criadas exceções específicas para representar regras de negócio invál
 
 ## 11. Service para gerenciamento de regras de negócio de cobrança
 A lógica de ciclo de vida das cobranças foi centralizada em um service de domínio, responsável por validar transições, aplicar crédito automaticamente, exigir motivo em cancelamentos e garantir atomicidade com transactions.
+
+## 12. Dashboard Financeiro
+O endpoint de dashboard financeiro foi implementado com cache para melhorar a performance. O cache é invalidado quando ocorre alguma alteração nas cobranças.
