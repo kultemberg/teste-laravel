@@ -47,9 +47,8 @@ Esse único comando instala dependências, gera a chave da aplicação, cria o b
 php artisan db:seed --class=DashboardDemoSeeder
 ```
 
-Cria um usuário de teste e dados financeiros para explorar a API:
-- **E-mail:** `financeiro.seeder@teste.com`
-- **Senha:** `123456`
+Cria um usuário de teste e dados financeiros para explorar a API.
+As credenciais do usuário gerado podem ser consultadas diretamente no arquivo `database/seeders/DashboardDemoSeeder.php`, ou você pode definir suas próprias credenciais no `.env` antes de rodar o seeder — veja a seção **🌱 Seed de demonstração** abaixo.
 
 **5. Inicie o servidor**
 
@@ -63,12 +62,12 @@ A API estará disponível em: **`http://localhost:8000/api/v1`**
 
 ### Verificando se está funcionando
 
-Faça uma requisição de login para confirmar que tudo está rodando:
+Faça uma requisição de login com as credenciais do usuário que você criou ou que o seeder gerou:
 
 ```bash
 curl -s -X POST http://localhost:8000/api/v1/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"financeiro.seeder@teste.com","password":"123456"}' \
+  -d '{"email":"SEU_EMAIL","password":"SUA_SENHA"}' \
   | python3 -m json.tool
 ```
 
@@ -160,10 +159,12 @@ php artisan db:seed --class=DashboardDemoSeeder
 ```
 
 Dados criados:
-- 1 usuário (`financeiro.seeder@teste.com` / senha: `123456`)
+- 1 usuário de teste — as credenciais ficam definidas no próprio seeder (`database/seeders/DashboardDemoSeeder.php`) e podem ser alteradas antes de executar
 - 2 clientes com contratos e itens
 - Cobranças com status variados (`pago_parcial`, `inadimplente`)
 - 3 ordens de serviço com prioridades e status distintos
+
+> 💡 **Dica:** prefere usar seu próprio usuário? Crie-o via endpoint de registro ou ajuste as credenciais no seeder antes de rodá-lo.
 
 ---
 
@@ -178,8 +179,8 @@ POST /api/v1/login
 Content-Type: application/json
 
 {
-  "email": "financeiro.seeder@teste.com",
-  "password": "123456"
+  "email": "seu@email.com",
+  "password": "sua_senha"
 }
 ```
 

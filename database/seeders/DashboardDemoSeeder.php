@@ -88,11 +88,11 @@ class DashboardDemoSeeder extends Seeder
             'cliente_id' => $cliente2->id,
             'contrato_id' => $contrato2->id,
             'data_referencia' => now(),
-            'data_vencimento' => now()->subDays(10),
+            'data_vencimento' => now()->addDays(5), // vencimento futuro → aguardando pagamento
             'valor' => 1600,
             'valor_pago' => 0,
             'valor_credito_aplicado' => 0,
-            'status' => 'inadimplente',
+            'status' => 'aguardando_pagamento',
         ]);
 
         // Ordens de serviço (DISTRIBUIÇÃO)
